@@ -5,7 +5,10 @@ import java.util.Map.Entry;
 
 import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 
 import de.willuhn.jameica.gui.Action;
 import de.willuhn.jameica.gui.dialogs.AbstractDialog;
@@ -57,27 +60,37 @@ public class WWWLinksDialog extends AbstractDialog<String> {
 
 
 		Container container = new SimpleContainer(parent, true);
-		container.addHeadline(i18n.tr("Order"));
+		container.addHeadline(i18n.tr("CSV Download konfigurieren"));
 
 		FormTextPart text = new FormTextPart();
 		String out = "<form>" +
-				"<p>Bitte die URL eintragen, von welcher die Kurse heruntergelanden werden sollen.</p><p>Folgende Variabenen können in der URL genutzt werden:</p>";
+				"<p>Bitte die URL eintragen, von welcher die Kurse heruntergelanden werden sollen.</p><p>Folgende Variablen können in der URL genutzt werden:</p>";
 		for (Entry<String, Object> x: valuesMap.entrySet()) {
 			out = out + "${" + x.getKey() + "}  " + x.getValue()+"<br/>"; 
 		}
 		out = out + "</form>";
 		text.setText(out);
 		container.addPart(text);
-		container.addHeadline(i18n.tr("Url"));
+		container.addHeadline(i18n.tr("URL mit optionalen Parametern"));
 		textarea = new TextAreaInput(url, 2000);
 		textarea.enable();
 		container.addPart(textarea);
 
 
-		container.addHeadline(i18n.tr("Ersetzungstest"));
+		container.addHeadline(i18n.tr("Finale URL"));
 		TextAreaInput textareaout = new TextAreaInput("", 2000);
 		container.addPart(textareaout);
 
+		// Beim Ändern der Eingabe automatisch die Ausgabe aktualisieren
+		((Text)textarea.getControl()).addModifyListener(new ModifyListener() {		
+			@Override
+			public void modifyText(ModifyEvent e) {
+				url = (String) textarea.getValue();
+		        String subsource = sub.replace(url);
+		        textareaout.setValue(subsource);
+			}
+		});
+		
 		ButtonArea buttons = new ButtonArea();
 		buttons.addButton(i18n.tr("Weiter"),new Action() {
 			public void handleAction(Object context) throws ApplicationException
@@ -86,14 +99,6 @@ public class WWWLinksDialog extends AbstractDialog<String> {
 				close();
 			}
 		},null,true,"ok.png");
-		buttons.addButton(i18n.tr("Test Ersetzung"),new Action() {
-			public void handleAction(Object context) throws ApplicationException
-			{
-				url = (String) textarea.getValue();
-				String subsource = sub.replace(url);
-				textareaout.setValue(subsource);
-			}
-		},null,true,"view-refresh.png");
 		container.addButtonArea(buttons);
 
 
