@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +57,7 @@ public class CSVImportHelper {
 		} else {
 
 			//source = "xhttps://www.ariva.de/quote/historic/historic.csv?secu=101542057&boerse_id=8&clean_split=1&clean_payout=1&clean_bezug=1&currency=EUR&min_time=1.1.2000&max_time=2.9.2020&trenner=%3B&go=Download";
-			Map<String, Object> valuesMap = new HashMap<String, Object>();
+			Map<String, Object> valuesMap = new LinkedHashMap<String, Object>();
 			LocalDate now = LocalDate.now();
 			valuesMap.put("day", Integer.toString(now.getDayOfMonth()));
 			valuesMap.put("month", Integer.toString(now.getMonthValue()));
@@ -64,7 +65,14 @@ public class CSVImportHelper {
 			StringSubstitutor sub = new StringSubstitutor(valuesMap);
 
 			WWWLinksDialog dialog = new WWWLinksDialog(DebugDialog.POSITION_CENTER, "", source, sub,valuesMap);
-			source = (String) dialog.open();
+			try {
+				source = (String) dialog.open();
+				if(source == null) {
+					return null;
+				}
+			} catch (OperationCanceledException e) {
+				return null;
+			}
 
 			String subsource = sub.replace(source);
 			Logger.info("Url für CSV-Abruf: " + subsource);
